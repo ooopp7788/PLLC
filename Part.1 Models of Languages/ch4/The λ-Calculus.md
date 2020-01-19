@@ -93,6 +93,9 @@ mkmult0 ≐ λt.λn.λm.if (iszero n) 0 (add m (t (sub1 n) m))
 ```
 Y ≐ λf.(λx.f (x x)) (λx.f (x x))
 ```
+Y f = ((λx.f (x x)) (λx.f (x x)))
+    = f ((λx.f (x x)) (λx.f (x x)))
+    = f (Y f)
 
 #### 4.7 λ-Calculus
 表达式完全规约，指一个表达式子无法被 ->β 规约 和 ->η 规约，也叫一个表达式是`正则形式 normal form`
