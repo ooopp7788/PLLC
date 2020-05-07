@@ -9,14 +9,14 @@ Church 将 lambda演算 发展为一种学习数学运算的方式，与机械�
 很多语言采用[call-by-value](https://en.wikipedia.org/wiki/Evaluation_strategy#Call_by_value)，参数在应用于函数前，会被完全求值。
 
 备注:
-* call-by-name: 函数体中使用参数表达式时，再求值，多次使用多次求值
+* call-by-name: 函数体中使用参数表达式时，先带入再求值，多次使用多次求值
 * call-by-value: 传入的参数表达式提前求值，将结果值绑定至函数中相应变量，通常是将结果value拷贝一份存储起来
 
 这一章中，我们会介绍 Landin‘s ISWIM，这门语言更接近的模拟了 `call-by-value`类型语言（如Scheme 和 ML）的核心。
 * ISWIM 的基本语法和 λ-calculus 一致，自由变量和代换也是一样
 * 和 λ-calculus 不一样的是，它更像一门真实的程序语言
 * ISWIM 提供基本常量和初级操作的集合
-* 更更笨的不同时 ISWIM 使用 `call-by-value` 规约规则
+* 更根本的不同是 ISWIM 使用 `call-by-value` 规约规则
 
 #### 5.1 ISWIM Expressions
 ```BNF
@@ -26,7 +26,7 @@ M,N,L,K  =  X
          |  b
          |  (o^n M ... M)
 
-X   =  avariable: x,y,...           // 变量
+X   =  a variable: x,y,...           // 变量
 b   =  a basic constant             // 常量
 o^n =  an n-ary primitive operation // n元基本操作
 ```
@@ -37,7 +37,15 @@ b   =  { ⌈n⌉ | n ∈ Z }
 o^1 =  { add1,sub1,iszero }
 o^2 =  { +, -, *, }
 
-(if0 K M N) ≐ (((iszero K) (λX.M) (λX.N)) ⌈0⌉) where X ̸∈ FV(M) ∪ FV(N)
+定义一个 if0 的宏指令
+(if0 K M N) ≐ (((iszero K) (λX.M) (λX.N)) ⌈0⌉)
+                where X ̸∈ FV(M) ∪ FV(N) // X 不属于 M N 中的自由变量集合
+备注:  iszero ≐ λn.n (λx.false) true 
+      ZERO ≐ λf.λx.x
+      true ≐ λx.λy.x
+      false ≐ λx.λy.y
+(iszero ZERO) 求值为 λx.λy.x
+(if0 K M N) 表示 K为 ⌈0⌉ 时，将 ⌈0⌉ 带入 M 中的 X 并执行 M 表达式, 否则将 ⌈0⌉ 带入 N 执行 N 表达式
 
 #### 5.2 ISWIM Reductions
 ISWIM 中的函数，仅接受完全求值后的参数，所以我们需要定义 values 集合
@@ -91,7 +99,7 @@ Y f  =    (λf.(λx.f (x x)) (λx.f (x x))) f
 问题是: 最后的表达式，是 `f (M M)` 形式，f 函数的参数 (M M) 形式，并不是 values 的元素，并且无法被规约。所以 `(Y f)` 并没有产生不动点函数
 * 为了避免无限规约的情况，我们将 Y 中所有的 M 表达式通过 `逆η转换` 转换成 (λX.M X) 函数。（函数是 values 集合中的元素）
 * 这种 `逆η转换` 使用 function value 替换掉了无限规约的表达式
-λf.(λx.f (x x)) (λx.f (x x))
+λf.(λx.f (x x)) (λx.f (x x)) // f (M M) 形式表达式，无法规约
 将 (M M) 形式的无限规约 `逆η转换` 得：
 (λf.
   (λg.((λx.f (x x))
@@ -147,3 +155,5 @@ evalv(M) = b         if M =v b
 如果 evalv(M) 不存在，我们说 M 是发散的。
 比如: Ω ≐ ((λx.x x) (λx.x x))
 
+#### 5.5 Consistency
+evalv 一致性证明 略
